@@ -293,51 +293,7 @@ xdescribe('DebuggerAgent', function() {
     }
   });
 
-  describe('nodeVersionHasSetVariableValue', function() {
-    it('returns false for v0.8.20', function(done) {
-      expect(DebuggerAgent.nodeVersionHasSetVariableValue('v0.8.20'))
-        .to.equal(false);
-      done();
-    });
-
-    it('returns false for v0.10.11', function(done) {
-      expect(DebuggerAgent.nodeVersionHasSetVariableValue('v0.10.11'))
-        .to.equal(false);
-      done();
-    });
-
-    it('returns true for v0.10.12', function(done) {
-      expect(DebuggerAgent.nodeVersionHasSetVariableValue('v0.10.12'))
-        .to.equal(true);
-      done();
-    });
-
-    it('returns false for v0.11.1', function(done) {
-      expect(DebuggerAgent.nodeVersionHasSetVariableValue('v0.11.1'))
-        .to.equal(false);
-      done();
-    });
-
-    it('returns true for v0.11.2', function(done) {
-      expect(DebuggerAgent.nodeVersionHasSetVariableValue('v0.11.2'))
-        .to.equal(true);
-      done();
-    });
-
-    it('returns true for v0.12.0', function(done) {
-      expect(DebuggerAgent.nodeVersionHasSetVariableValue('v0.12.0'))
-        .to.equal(true);
-      done();
-    });
-
-    it('returns true for v1.0.0', function(done) {
-      expect(DebuggerAgent.nodeVersionHasSetVariableValue('v1.0.0'))
-        .to.equal(true);
-      done();
-    });
-  });
-
-  describe('evaluateOnCallFrame', function() {
+describe('evaluateOnCallFrame', function() {
     before(setupDebugScenario);
 
     it('truncates String values at 10,000 characters', function(done) {

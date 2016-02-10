@@ -98,6 +98,7 @@ WebInspector.NodeInspectorOverrides.prototype = {
       WebInspector.ResourceTreeModel.EventTypes.CachedResourcesLoaded,
       function() {
         var project = WebInspector.workspace.project('1:file://');
+        if (!project) return;
         var projectDelegate = project._projectDelegate;
         var frames = WebInspector.ResourceTreeModel.frames();
         var frame = frames.filter(function(frame) {
@@ -286,6 +287,7 @@ function showMainAppFile() {
 
 function getAllUiSourceCodes() {
   var project = WebInspector.workspace.project('1:file://');
+  if (!project) return [];
   var uiSourceCodes = project.uiSourceCodes().filter(nameIsNotEmpty);;
 
   return uiSourceCodes;

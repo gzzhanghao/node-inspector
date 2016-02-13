@@ -1,5 +1,5 @@
 [
-  { "name": "node", "type": "autostart" },
+  { "name": "node", "type": "autostart", "path": "../front-end-node" },
   { "name": "node/profiler", "type": "autostart" },
   { "name": "node/network", "type": "autostart" },
   { "name": "node/settings", "type": "autostart" },

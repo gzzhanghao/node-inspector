@@ -1,6 +1,5 @@
 {
-    "domains": [
-      {
+    "domains": [{
         "domain": "Console",
         "types": [],
         "commands": [],
@@ -10,10 +9,9 @@
                 "description": "Open console window"
             }
         ]
-      },
-      {
+    },
+    {
         "domain": "Network",
-        "types": [],
         "commands": [
             {
                 "name": "_clearCapturedData",
@@ -26,8 +24,6 @@
                 ],
                 "description": "Disables capturing of http requests"
             }
-        ],
-        "events": []
-      }
-    ]
+        ]
+    }]
 }

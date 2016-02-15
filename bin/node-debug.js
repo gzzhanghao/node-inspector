@@ -31,10 +31,14 @@ function nodeDebug() {
 
   let script = config._[0];
   if (!fs.existsSync(script)) {
-    try {
-      script = whichSync(script);
-    } catch (error) {
-      // noop
+    if (!fs.existsSync(script + '.js')) {
+      try {
+        script = whichSync(script);
+      } catch (error) {
+        // noop
+      }
+    } else {
+      script += '.js';
     }
   }
 

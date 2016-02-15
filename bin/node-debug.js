@@ -10,6 +10,8 @@ const open = require('biased-opener');
 const whichSync = require('which').sync;
 
 const Config = require('../lib/Config');
+
+const bind = require('../lib/util').bind;
 const log = require('../lib/util').log;
 
 const startServer = require('./inspector-server');
@@ -58,6 +60,20 @@ function nodeDebug() {
 
   // 4. bind listeners
 
+  let ref = 0;
+
+  function unref() {
+    ref -= 1;
+    if (!ref) server.close();
+  }
+
+  bind(server, {
+    backend(b) {
+      ref += 1;
+      bind(b, { close: unref });
+    }
+  });
+
   log(server, {
     listening: `Debug server is listening at ${config.host}:${config.port}`,
     error: error => ['Debug server error', error],
@@ -71,7 +87,13 @@ function nodeDebug() {
     exit: 'Debug process exit'
   });
 
-  process.once('exit', () => childProcess.kill());
+  process.once('exit', () => {
+    childProcess.kill();
+    server.close();
+  });
+
+  process.on('SIGINT', () => process.exit());
+  process.on('SIGQUIT', () => process.exit());
 }
 
 function getUrl (config) {

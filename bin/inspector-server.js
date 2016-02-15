@@ -14,17 +14,21 @@ function startServer(opts, logger) {
 
   const server = new Server(opts);
 
+  const logServer = logger('node-inspector:server');
+  const logBackend = logger('node-inspector:backend');
+  const logFrontend = logger('node-inspector:frontend');
+
   log(server, {
     listening: null,
     close: null,
     connection: null,
     error: error => [error.stack || error.message || error]
-  }, logger('node-inspector:server'));
+  }, logServer);
 
   bind(server, {
 
-    backend: backend => {
-      log(backend, {
+    backend(b) {
+      log(b, {
         connect: null,
         ready: null,
         close: null,
@@ -32,17 +36,17 @@ function startServer(opts, logger) {
         send: data => [data],
         message: msg => [JSON.stringify(msg.body)],
         error: error => [error.stack || error.message || error]
-      }, logger('node-inspector:backend'));
+      }, logBackend);
     },
 
-    frontend: frontend => {
-      log(frontend, {
+    frontend(f) {
+      log(f, {
         open: null,
         send: data => [data],
         message: msg => [JSON.stringify(msg)],
         error: error => [error.stack || error.message || error],
         close: (code, msg) => [code, msg]
-      }, logger('node-inspector:frontend'));
+      }, logFrontend);
     }
   });
 

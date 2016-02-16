@@ -14,9 +14,9 @@ function startServer(opts, logger) {
 
   const server = new Server(opts);
 
-  const logServer = logger('node-inspector:server');
-  const logBackend = logger('node-inspector:backend');
-  const logFrontend = logger('node-inspector:frontend');
+  const logServer = logger('ni:server');
+  const logBackend = logger('ni:backend');
+  const logFrontend = logger('ni:frontend');
 
   log(server, {
     listening: null,
@@ -33,8 +33,8 @@ function startServer(opts, logger) {
         ready: null,
         close: null,
         unhndledMessage: null,
-        send: data => [data],
-        message: msg => [JSON.stringify(msg.body)],
+        send: data => [JSON.stringify(data)],
+        message: msg => [JSON.stringify(msg)],
         error: error => [error.stack || error.message || error]
       }, logBackend);
     },

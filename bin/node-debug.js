@@ -16,8 +16,8 @@ const log = require('../lib/util').log;
 
 const startServer = require('./inspector-server');
 
-const debugDebugger = debug('node-inspector:debugger');
-const debugBrowser = debug('node-inspector:browser');
+const debugDebugger = debug('ni:debugger');
+const debugBrowser = debug('ni:browser');
 
 function nodeDebug() {
   const config = new Config().getData();

@@ -17,36 +17,51 @@ function startServer(opts, logger) {
   const logServer = logger('ni:server');
   const logBackend = logger('ni:backend');
   const logFrontend = logger('ni:frontend');
+  const logError = logger('ni:error');
 
   log(server, {
-    listening: null,
-    close: null,
-    connection: null,
+    listening: [],
+    close: [],
+    connection: [],
     error: error => [error.stack || error.message || error]
   }, logServer);
+
+  log(server, {
+    error: error => [error.stack || error.message || error]
+  }, logError);
 
   bind(server, {
 
     backend(b) {
+
       log(b, {
-        connect: null,
-        ready: null,
-        close: null,
-        unhndledMessage: null,
+        connect: [],
+        ready: [],
+        close: [],
+        unhndledMessage: [],
         send: data => [JSON.stringify(data)],
         message: msg => [JSON.stringify(msg)],
         error: error => [error.stack || error.message || error]
       }, logBackend);
+
+      log(b, {
+        error: error => [error.stack || error.message || error]
+      }, logError);
     },
 
     frontend(f) {
+
       log(f, {
-        open: null,
+        open: [],
         send: data => [data],
         message: msg => [JSON.stringify(msg)],
         error: error => [error.stack || error.message || error],
         close: (code, msg) => [code, msg]
       }, logFrontend);
+
+      log(f, {
+        error: error => [error.stack || error.message || error]
+      }, logError);
     }
   });
 

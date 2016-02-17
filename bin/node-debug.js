@@ -22,6 +22,8 @@ const debugBrowser = debug('ni:browser');
 function nodeDebug() {
   const config = new Config().getData();
 
+  // @todo inject inspector helpers
+
   // 1. start debug server
 
   const server = startServer(config);

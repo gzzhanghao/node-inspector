@@ -31,6 +31,10 @@ function startServer(opts, logger) {
     error: error => [error.stack || error.message || error]
   }, logError);
 
+  log(server, {
+    error: error => [error.stack || error.message || error]
+  }, console.log.bind(console, 'NodeInspector Server'));
+
   bind(server, {
 
     backend(b) {
@@ -76,6 +80,10 @@ function startServer(opts, logger) {
       log(f, {
         error: error => [error.stack || error.message || error]
       }, logError);
+
+      log(f, {
+        error: error => [error.stack || error.message || error]
+      }, console.log.bind(console, 'NodeInspector Frontend'));
     }
   });
 

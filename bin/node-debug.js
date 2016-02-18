@@ -92,28 +92,25 @@ const nodeDebug = co.wrap(function * () {
   log(server, {
     listening: `Debug server is listening at ${config.host}:${config.port}`,
     error: error => ['Debug server error', error],
-    close: 'Debug server closed'
   });
 
   log(childProcess, {
     close: 'Debug process close',
-    disconnect: 'Debug process disconnect',
     error: error => ['Debug process error', error],
-    exit: 'Debug process exit'
   });
 
   // bind exits
 
-  server.once('close', () => process.exit());
   childProcess.once('close', () => process.exit());
+  server.once('close', exit);
+  process.on('SIGINT', exit);
+  process.on('SIGQUIT', exit);
+  process.on('SIGTERM', exit);
 
-  process.once('exit', () => {
+  function exit() {
     childProcess.kill();
     server.close();
-  });
-
-  process.on('SIGINT', () => process.exit());
-  process.on('SIGQUIT', () => process.exit());
+  }
 });
 
 function getUrl (config) {

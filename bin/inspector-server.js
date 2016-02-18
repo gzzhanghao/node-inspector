@@ -43,7 +43,7 @@ function startServer(opts, logger) {
         send: data => [data],
         message: msg => {
           if (msg.event !== 'afterCompile') {
-            return [JSON.stringify(msg).slice(0, 100)];
+            return [JSON.stringify(msg)];
           }
         },
         error: error => [error.stack || error.message || error]
@@ -65,7 +65,7 @@ function startServer(opts, logger) {
         send: data => {
           const msg = JSON.parse(data);
           if (msg.method !== 'Debugger.scriptParsed') {
-            return [data.slice(0, 100)];
+            return [data];
           }
         },
         message: msg => [JSON.stringify(msg)],

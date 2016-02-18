@@ -18,6 +18,7 @@ function startServer(opts, logger) {
   const logBackend = logger('ni:backend');
   const logFrontend = logger('ni:frontend');
   const logError = logger('ni:error');
+  const logPlugin = logger('ni:plugin');
 
   log(server, {
     listening: [],
@@ -39,10 +40,18 @@ function startServer(opts, logger) {
         ready: [],
         close: [],
         unhndledMessage: [],
-        send: data => [JSON.stringify(data)],
-        message: msg => [JSON.stringify(msg)],
+        send: data => [data],
+        message: msg => {
+          if (msg.event !== 'afterCompile') {
+            return [JSON.stringify(msg).slice(0, 100)];
+          }
+        },
         error: error => [error.stack || error.message || error]
       }, logBackend);
+
+      log(b, {
+        plugin: event => [event.name, event.type, event.error]
+      }, logPlugin);
 
       log(b, {
         error: error => [error.stack || error.message || error]
@@ -53,7 +62,12 @@ function startServer(opts, logger) {
 
       log(f, {
         open: [],
-        send: data => [data],
+        send: data => {
+          const msg = JSON.parse(data);
+          if (msg.method !== 'Debugger.scriptParsed') {
+            return [data.slice(0, 100)];
+          }
+        },
         message: msg => [JSON.stringify(msg)],
         error: error => [error.stack || error.message || error],
         close: (code, msg) => [code, msg]

@@ -2,9 +2,10 @@
 
 'use strict';
 
-const fs = require('fs');
 const path = require('path');
 const fork = require('child_process').fork;
+const co = require('co');
+const fs = require('mz/fs');
 const debug = require('debug');
 const open = require('biased-opener');
 const whichSync = require('which').sync;
@@ -19,44 +20,46 @@ const startServer = require('./inspector-server');
 const debugDebugger = debug('ni:debugger');
 const debugBrowser = debug('ni:browser');
 
-function nodeDebug() {
+const nodeDebug = co.wrap(function * () {
   const config = new Config().getData();
 
-  // @todo inject inspector helpers
+  // find debug process
 
-  // 1. start debug server
-
-  const server = startServer(config);
-  server.once('close', () => process.exit());
-
-  // 2. start debug process
-
+  let found;
   let script = config._[0];
-  if (!fs.existsSync(script)) {
-    if (!fs.existsSync(script + '.js')) {
-      try {
-        script = whichSync(script);
-      } catch (error) {
-        // noop
-      }
-    } else {
-      script += '.js';
-    }
+
+  yield fs.stat(script).then(stat => {
+    if (stat.isFile()) found = script;
+  }).catch(() => {
+    // noop
+  });
+
+  if (!found) {
+    yield fs.stat(script + '.js').then(stat => {
+      if (stat.isFile()) found = script + '.js';
+    }).catch(() => {
+      // noop
+    });
   }
 
-  const childProcess = fork(script, config._.slice(1), {
+  if (!found) {
+    found = whichSync(script);
+  }
+
+  // start debug server
+
+  const server = startServer(config);
+
+  // fork debug process
+
+  const childProcess = fork(found, config._.slice(1), {
     execArgv: [
       '--debug-brk',
       `--debug-port=${config.debugPort}`
     ]
   });
-  childProcess.once('close', () => process.exit());
 
-  log(childProcess, {
-    error: error => [error.stack || error.message || error]
-  }, debugDebugger);
-
-  // 3. open browser
+  // open browser
 
   open(getUrl(config), { preferredBrowsers : ['chrome', 'chromium', 'opera'] }, error => {
     if (!error) return;
@@ -64,7 +67,7 @@ function nodeDebug() {
     console.log('Please open the URL manually in Chrome/Chromium/Opera or similar browser');
   });
 
-  // 4. bind listeners
+  // encount reference
 
   let ref = 0;
 
@@ -80,6 +83,12 @@ function nodeDebug() {
     }
   });
 
+  // bind loggings
+
+  log(childProcess, {
+    error: error => [error.stack || error.message || error]
+  }, debugDebugger);
+
   log(server, {
     listening: `Debug server is listening at ${config.host}:${config.port}`,
     error: error => ['Debug server error', error],
@@ -93,6 +102,11 @@ function nodeDebug() {
     exit: 'Debug process exit'
   });
 
+  // bind exits
+
+  server.once('close', () => process.exit());
+  childProcess.once('close', () => process.exit());
+
   process.once('exit', () => {
     childProcess.kill();
     server.close();
@@ -100,7 +114,7 @@ function nodeDebug() {
 
   process.on('SIGINT', () => process.exit());
   process.on('SIGQUIT', () => process.exit());
-}
+});
 
 function getUrl (config) {
   return `${config.ssl ? 'https' : 'http'}://${config.host}:${config.port}`;

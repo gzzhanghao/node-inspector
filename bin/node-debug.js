@@ -89,13 +89,7 @@ const nodeDebug = co.wrap(function * () {
     error: error => [error.stack || error.message || error]
   }, debugDebugger);
 
-  log(server, {
-    listening: `Debug server is listening at ${config.host}:${config.port}`,
-    error: error => ['Debug server error', error],
-  });
-
   log(childProcess, {
-    close: 'Debug process close',
     error: error => ['Debug process error', error],
   });
 
@@ -103,6 +97,7 @@ const nodeDebug = co.wrap(function * () {
 
   childProcess.once('close', () => process.exit());
   server.once('close', exit);
+
   process.on('SIGINT', exit);
   process.on('SIGQUIT', exit);
   process.on('SIGTERM', exit);
@@ -110,6 +105,7 @@ const nodeDebug = co.wrap(function * () {
   function exit() {
     childProcess.kill();
     server.close();
+    process.exit();
   }
 });
 

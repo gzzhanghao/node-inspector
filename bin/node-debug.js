@@ -46,7 +46,7 @@ function nodeDebug() {
 
   const childProcess = fork(script, config._.slice(1), {
     execArgv: [
-      config.debugBrk ? '--debug-brk' : '--debug',
+      '--debug-brk',
       `--debug-port=${config.debugPort}`
     ]
   });

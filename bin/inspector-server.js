@@ -18,7 +18,10 @@ function startServer(opts, logger) {
   const logBackend = logger('ni:backend');
   const logFrontend = logger('ni:frontend');
   const logError = logger('ni:error');
-  const logPlugin = logger('ni:plugin');
+
+  const plugins = opts.plugins
+    .filter(p => typeof p === 'function')
+    .map(p => p.name);
 
   log(server, {
     listening: [],
@@ -35,11 +38,16 @@ function startServer(opts, logger) {
 
     backend(b) {
       log(b, {
-        connect: [],
-        ready: [],
         close: [],
         unhndledMessage: [],
         send: data => [data],
+        plugin: event => {
+          plugins.splice(plugins.indexOf(event.name), 1);
+          if (plugins.length) {
+            logBackend('plugin', 'pendings:', plugins.join(', '));
+          }
+          return [event.name, event.type, event.error];
+        },
         message: msg => {
           if (msg.event !== 'afterCompile') {
             return [JSON.stringify(msg)];
@@ -49,12 +57,10 @@ function startServer(opts, logger) {
       }, logBackend);
 
       log(b, {
-        plugin: event => [event.name, event.type, event.error]
-      }, logPlugin);
-
-      log(b, {
         error: error => [error.stack || error.message || error]
       }, logError);
+
+      b.ready.then(() => logBackend('ready'));
     },
 
     frontend(f) {

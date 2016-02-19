@@ -63,6 +63,7 @@ const nodeDebug = co.wrap(function * () {
             restarted = true;
           })
         });
+
         if (restarted) {
           restarted = false;
           notify('warning', 'NodeInspector Server: Restarted');

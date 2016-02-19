@@ -21,7 +21,57 @@ const debugDebugger = debug('ni:debugger');
 const debugBrowser = debug('ni:browser');
 
 const nodeDebug = co.wrap(function * () {
-  const config = new Config().getData();
+  const args = new Config();
+
+  let restarted = false;
+
+  args.addConfig({
+    modules: [{ "name": "node/sdk", "type": "autostart" }],
+    domains: [{
+      "domain": "NodeInspector",
+      "events": [
+        {
+          "name": "restart",
+          "description": "Debugger process is going to restart"
+        }
+      ],
+      "commands": [
+        {
+          "name": "enable",
+          "description": "Enable NodeInspector module"
+        }
+      ]
+    }],
+    plugins: [
+      co.wrap(function * (backend) {
+        const inspector = yield backend.plugin('NodeInspector.InspectorHelper');
+        const notify = yield backend.plugin('NodeInspector.NotifyHelper');
+        const protocol = yield backend.plugin('NodeInspector.ProtocolHelper');
+
+        protocol.registerCommands({
+          'NodeInspector.enable': true
+        });
+
+        inspector.registerCommands({
+          restart: co.wrap(function * (args) {
+            try {
+              yield backend.emitEvent('NodeInspector.restart');
+            } catch (error) {
+              notify('error', 'NodeInspector Server: Failed to notify restart event');
+            }
+            restart();
+            restarted = true;
+          })
+        });
+        if (restarted) {
+          restarted = false;
+          notify('warning', 'NodeInspector Server: Restarted');
+        }
+      })
+    ]
+  });
+
+  const config = args.getData();
 
   // find debug process
 
@@ -52,19 +102,39 @@ const nodeDebug = co.wrap(function * () {
 
   // fork debug process
 
-  const childProcess = fork(found, config._.slice(1), {
-    execArgv: [
-      '--debug-brk',
-      `--debug-port=${config.debugPort}`
-    ]
-  });
+  let lock = false;
+  let childProcess;
+
+  function restart() {
+    if (childProcess) childProcess.kill();
+
+    lock = true;
+
+    childProcess = fork(found, config._.slice(1), {
+      execArgv: [`--debug-brk=${config.debugPort}`]
+    });
+
+    log(childProcess, {
+      error: error => [error.stack || error.message || error]
+    }, debugDebugger);
+
+    childProcess.once('close', function() {
+      if (this === childProcess) process.exit();
+    });
+  }
+
+  restart();
 
   // open browser
 
-  open(getUrl(config), { preferredBrowsers : ['chrome', 'chromium', 'opera'] }, error => {
+  open(getUrl(config), {
+    preferredBrowsers : ['chrome', 'chromium', 'opera']
+  }, error => {
     if (!error) return;
     debugBrowser('error', error.message);
-    console.log('Please open the URL manually in Chrome/Chromium/Opera or similar browser');
+    console.log(
+      'Please open the URL manually in Chrome/Chromium/Opera or similar browser'
+    );
   });
 
   // encount reference
@@ -73,29 +143,19 @@ const nodeDebug = co.wrap(function * () {
 
   function unref() {
     ref -= 1;
-    if (!ref) server.close();
+    if (!lock && !ref) server.close();
   }
 
   bind(server, {
     backend(b) {
       ref += 1;
+      lock = false;
       bind(b, { close: unref });
     }
   });
 
-  // bind loggings
-
-  log(childProcess, {
-    error: error => [error.stack || error.message || error]
-  }, debugDebugger);
-
-  log(childProcess, {
-    error: error => ['Debug process error', error],
-  });
-
   // bind exits
 
-  childProcess.once('close', () => process.exit());
   server.once('close', exit);
 
   process.on('SIGINT', exit);

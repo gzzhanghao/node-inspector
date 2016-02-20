@@ -76,25 +76,28 @@ const nodeDebug = co.wrap(function * () {
 
   // find debug process
 
-  let found;
-  let script = config._[0];
+  let script = config._[0] || '';
+  let found = script;
 
-  yield fs.stat(script).then(stat => {
-    if (stat.isFile()) found = script;
-  }).catch(() => {
-    // noop
-  });
+  if (script) {
 
-  if (!found) {
-    yield fs.stat(script + '.js').then(stat => {
-      if (stat.isFile()) found = script + '.js';
+    yield fs.stat(script).then(stat => {
+      if (stat.isFile()) found = script;
     }).catch(() => {
       // noop
     });
-  }
 
-  if (!found) {
-    found = whichSync(script);
+    if (!found) {
+      yield fs.stat(script + '.js').then(stat => {
+        if (stat.isFile()) found = script + '.js';
+      }).catch(() => {
+        // noop
+      });
+    }
+
+    if (!found) {
+      found = whichSync(script);
+    }
   }
 
   // start debug server

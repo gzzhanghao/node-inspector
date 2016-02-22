@@ -76,8 +76,8 @@ const nodeDebug = co.wrap(function * () {
 
   // find debug process
 
+  let found = '';
   let script = config._[0] || '';
-  let found = script;
 
   if (script) {
 
@@ -114,7 +114,7 @@ const nodeDebug = co.wrap(function * () {
 
     lock = true;
 
-    childProcess = fork(found, config._.slice(1), {
+    childProcess = fork(found || script, config._.slice(1), {
       execArgv: [`--debug-brk=${config.debugPort}`]
     });
 

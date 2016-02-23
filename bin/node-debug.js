@@ -44,7 +44,7 @@ const nodeDebug = co.wrap(function * () {
     }],
     plugins: [
       co.wrap(function * (backend) {
-        const inspector = yield backend.plugin('NodeInspector.InspectorHelper');
+        const inspector = yield backend.plugin('NodeInspector.CommandHelper');
         const notify = yield backend.plugin('NodeInspector.NotifyHelper');
         const protocol = yield backend.plugin('NodeInspector.ProtocolHelper');
 

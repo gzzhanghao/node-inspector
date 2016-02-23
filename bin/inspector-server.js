@@ -48,11 +48,7 @@ function startServer(opts, logger) {
           }
           return [event.name, event.type, event.error];
         },
-        message: msg => {
-          if (msg.event !== 'afterCompile') {
-            return [JSON.stringify(msg)];
-          }
-        },
+        message: msg => [msg],
         error: error => [error.stack || error.message || error]
       }, logBackend);
 
@@ -66,12 +62,7 @@ function startServer(opts, logger) {
     frontend(f) {
       log(f, {
         open: [],
-        send: data => {
-          const msg = JSON.parse(data);
-          if (msg.method !== 'Debugger.scriptParsed') {
-            return [data];
-          }
-        },
+        send: data => [data],
         message: msg => [JSON.stringify(msg)],
         error: error => [error.stack || error.message || error],
         close: (code, msg) => [code, msg]

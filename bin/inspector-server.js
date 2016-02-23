@@ -48,7 +48,7 @@ function startServer(opts, logger) {
           }
           return [event.name, event.type, event.error];
         },
-        message: msg => [msg],
+        message: msg => [JSON.stringify(msg)],
         error: error => [error.stack || error.message || error]
       }, logBackend);
 

@@ -165,7 +165,7 @@ const nodeDebug = co.wrap(function * () {
   process.on('SIGINT', exit);
   process.on('SIGQUIT', exit);
   process.on('SIGTERM', exit);
-  process.on('exit', exit);
+  process.on('beforeExit', exit);
 
   function exit() {
     childProcess.kill();

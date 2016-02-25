@@ -48,7 +48,7 @@ function startServer(opts, logger) {
           }
           return [event.name, event.type, event.error];
         },
-        message: msg => [JSON.stringify(msg)],
+        message: msg => [JSON.stringify(msg).slice(0, 200)],
         error: error => [error.stack || error.message || error]
       }, logBackend);
 
@@ -63,7 +63,7 @@ function startServer(opts, logger) {
       log(f, {
         open: [],
         send: data => [data],
-        message: msg => [JSON.stringify(msg)],
+        message: msg => [JSON.stringify(msg).slice(0, 200)],
         error: error => [error.stack || error.message || error],
         close: (code, msg) => [code, msg]
       }, logFrontend);
